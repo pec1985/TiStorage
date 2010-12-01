@@ -56,6 +56,12 @@ Examples:
     // Remove a record who's index is 4
     users.remove(4);
     
+    //Finding a records index
+    users.find().indexOf(user);
+    
+    //Removing a record, not knowing it's index (you can't delete based off of the record id)
+    users.remove( users.find().indexOf(user) );
+    
     // Another example that will remove all records where the criteria is true
     // NOT IMPLEMENTED YET
     users.remove({ 'last_name': 'Blalock' });
