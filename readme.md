@@ -12,7 +12,7 @@ Examples:
     Ti.include('TiStorage.js');
     
     // Select a 'database'.  If one is present in the PropertiesDB, it will be created
-    var db = TiStorage.use('appc');
+    var db = TiStorage().use('appc');
     
     // Will select an object collection called 'users'.  If it doesn't exist
     // it will be created automatically.
