@@ -121,11 +121,12 @@ TiStorage.core = TiStorage.prototype = function() {
 	 * @param (object) obj An object of props/values for the new record
 	 */
 	this.create = function(obj) {
-		// Get the length of the collection array.  Currently used for the unique ID
-		// though this hasn't been tested fully yet.
-		var length = this.storage[this.database][this.collection].length;
+		// Get the last index and the id prop.
+		var coll = this.storage[this.database][this.collection];
+		last = coll[coll.length - 1];
 		
-		obj.id = length;
+		// Create a new id (not perfect)
+		obj.id = last.id + 1;
 		
 		this.storage[this.database][this.collection].push(obj);
 		Ti.App.Properties.setString(this.globalStore, JSON.stringify(this.storage));
@@ -159,14 +160,22 @@ TiStorage.core = TiStorage.prototype = function() {
 	/**
 	 * Removes one specified row / data in the selected collection
 	 *
-	 * @param (integer) index The index of the record
+	 * @param (integer) itemId The item ID property of the record
 	 */
-	this.remove = function(index) {
+	this.remove = function(itemId) {
+		// @TODO Determine whether to remove by ID or by associative object
+		// Make sure we're dealing with the right collection
 		var collection = this.storage[this.database][this.collection];
-		collection.splice(index, 1);
 		
+		// Get the row to remove by ID reference
+		var row = this.findOne({ id: itemId });
+
+		// Splice out the array index of the row
+		collection.splice(collection.indexOf(row), 1);
+
+		// Save the collection minus the removed row above
 		Ti.App.Properties.setString(this.globalStore, JSON.stringify(this.storage));
-		
+
 		return this;
 	};
 	

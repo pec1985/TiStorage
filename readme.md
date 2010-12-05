@@ -11,13 +11,12 @@ Examples:
     // Include the properties library
     Ti.include('TiStorage.js');
     
-    // Select a 'database'.  If one is present in the PropertiesDB, it will be created
-    var db = TiStorage().use('appc');
-    
-    // Will select an object collection called 'users'.  If it doesn't exist
-    // it will be created automatically.
-    var users = db.collection('users');
-    
+    // Start a TiStorage instance (new keywork not needed because it's generated already)	
+    var conn = TiStorage();
+
+    // Select / create the 'database'
+    var db = conn.use('appc');
+        
     /*
     	Querying examples
     */
@@ -48,22 +47,19 @@ Examples:
     });
     
     // Another example that will update all criteria that is true
-    // NOT IMPLEMENTED YET
+    // @NOTE: NOT IMPLEMENTED YET
     users.update({ 'last_name': 'Blalock' }, { 
     	'location': 'Florida'
     });
     
-    // Remove a record who's index is 4
+    // Finding a records index
+    users.find().indexOf(user);    
+    
+    // Remove a record who's id is 4 (note that this is not by index but by the unique ID of the object)
     users.remove(4);
     
-    //Finding a records index
-    users.find().indexOf(user);
-    
-    //Removing a record, not knowing it's index (you can't delete based off of the record id)
-    users.remove( users.find().indexOf(user) );
-    
     // Another example that will remove all records where the criteria is true
-    // NOT IMPLEMENTED YET
+    // @NOTE: NOT IMPLEMENTED YET
     users.remove({ 'last_name': 'Blalock' });
     
     
