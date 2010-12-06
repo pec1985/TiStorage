@@ -126,7 +126,7 @@ TiStorage.core = TiStorage.prototype = function() {
 		last = coll[coll.length - 1];
 		
 		// Create a new id (not perfect)
-		obj.id = last.id + 1;
+		obj.id = last ? last.id + 1 : 0;
 		
 		this.storage[this.database][this.collection].push(obj);
 		Ti.App.Properties.setString(this.globalStore, JSON.stringify(this.storage));
