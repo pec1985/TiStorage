@@ -39,7 +39,7 @@ Examples:
     	'last_name': 'Blalock'
     });
     
-    // Update the record who's index is 4
+    // Update the record who's item ID is 4
     users.update(4, { 
     	'first_name': 'Richard',
     	'last_name': 'Blalock',

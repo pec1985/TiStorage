@@ -79,6 +79,8 @@ TiStorage.core = TiStorage.prototype = function() {
 		var storage = Ti.App.Properties.setString(this.globalStore, JSON.stringify(StorageDb));
 
 		this.storage = JSON.parse(Ti.App.Properties.getString(this.globalStore));
+		
+		Ti.API.info('TiStorage - Ti Prop Created: ' + this.storage);
 	}
 	
 	/**
@@ -94,6 +96,8 @@ TiStorage.core = TiStorage.prototype = function() {
 		}
 
 		this.database = db;
+
+		Ti.API.info('TiStorage - Database Selected: ' + this.database);
 
 		return this;
 	};
@@ -111,6 +115,8 @@ TiStorage.core = TiStorage.prototype = function() {
 		}
 		
 		this.collection = collection;
+		
+		Ti.API.info('TiStorage - Collection Selected: ' + this.collection);
 		
 		return this;		
 	};
@@ -131,28 +137,36 @@ TiStorage.core = TiStorage.prototype = function() {
 		this.storage[this.database][this.collection].push(obj);
 		Ti.App.Properties.setString(this.globalStore, JSON.stringify(this.storage));
 		
+		Ti.API.info('TiStorage - Record Created: ' + obj.id);
+		
 		return this;
 	};
 	
 	/**
 	 * Updates an existing row / data in the selected collection
 	 *
-	 * @param (integer) index The index of the record
+	 * @param (integer) itemId The item ID property of the record
 	 * @param (object) obj An object of props/values for to update
 	 */
-	this.update = function(index, obj) {
-		var record = this.storage[this.database][this.collection][index];
+	this.update = function(itemId, obj) {
+		var record = this.storage[this.database][this.collection];
+		
+		// Get the row to remove by ID reference
+		var row = this.findOne({ id: itemId });
 		
 		for(prop in obj) {
 			// If prop doesn't exist, create it (prop as string in MongoDB fashion)
-			if(record[prop] === undefined) {
-				record['\'' + prop + '\''] = obj[prop];
+			// @TODO Create a way to remove a property if needed on update
+			if(row[prop] === undefined) {
+				row['\'' + prop + '\''] = obj[prop];
 			} else {
-				record[prop] = obj[prop];
+				row[prop] = obj[prop];
 			}
 		}
 		
 		Ti.App.Properties.setString(this.globalStore, JSON.stringify(this.storage));
+		
+		Ti.API.info('TiStorage - Updated Record: ' + row.id);
 		
 		return this;
 	};
@@ -175,6 +189,8 @@ TiStorage.core = TiStorage.prototype = function() {
 
 		// Save the collection minus the removed row above
 		Ti.App.Properties.setString(this.globalStore, JSON.stringify(this.storage));
+
+		Ti.API.info('TiStorage - Removed record: ' + row.id);
 
 		return this;
 	};
@@ -225,6 +241,8 @@ TiStorage.core = TiStorage.prototype = function() {
 									{
 										record.push(collection[i]);
 									} else {
+										Ti.API.info('TiStorage - Record Selected: ' + collection[i].id);
+										
 										// Only return the first matching record
 										return collection[i];
 									}
@@ -237,6 +255,7 @@ TiStorage.core = TiStorage.prototype = function() {
 			
 			// Return of array of matching records
 			if(qty === undefined) {
+				Ti.API.info('TiStorage - Records Selected: ' + record.id);
 				return record;
 			}
 		}
