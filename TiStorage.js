@@ -16,7 +16,7 @@
  *
  	SAMPLE USAGE
 	
-	Select a 'database'.  If one is present in the PropertiesDB, it will be created
+	Select a 'database'.  If one is not present in the PropertiesDB, it will be created
 	-------------------------------------------------------------------------------
 	var conn = TiStorage();
 	var db = conn.use('appc');
@@ -145,28 +145,59 @@ TiStorage.core = TiStorage.prototype = function() {
 	/**
 	 * Updates an existing row / data in the selected collection
 	 *
-	 * @param (integer) itemId The item ID property of the record
-	 * @param (object) obj An object of props/values for to update
+	 * @param (integer) target The item ID property or object to select
+	 * @param (object) obj An object of props/values to update
 	 */
-	this.update = function(itemId, obj) {
-		var record = this.storage[this.database][this.collection];
+	this.update = function(target, obj) {
+		var record = this.storage[this.database][this.collection],
+			row,
+			rows;
 		
-		// Get the row to remove by ID reference
-		var row = this.findOne({ id: itemId });
+		// @TODO Create a method 'merge' or something similar so we don't have to keep
+		// repeating  for in loops for merging or creating props.  Propbably better
+		// to use the new JS protocol Object.keys() too, so might want to migrate over
 		
-		for(prop in obj) {
-			// If prop doesn't exist, create it (prop as string in MongoDB fashion)
-			// @TODO Create a way to remove a property if needed on update
-			if(row[prop] === undefined) {
-				row['\'' + prop + '\''] = obj[prop];
-			} else {
-				row[prop] = obj[prop];
+		// If target arg is an object criteria, find all matching records
+		if(typeof target == 'object') {
+			// Find all results that meet the target object criteria
+			rows = this.find(target);
+			
+			// Loop through the results and make the appropriate updates
+			for(var i = 0; i < rows.length; i++) {
+				for(prop in obj) {
+					// If prop doesn't exist, create it (prop as string in MongoDB fashion)
+					// @TODO Create a way to remove a property if needed on update
+					if(rows[i][prop] === undefined) {
+						rows[i]['\'' + prop + '\''] = obj[prop];
+					} else {
+						rows[i][prop] = obj[prop];
+					}
+				}				
 			}
+			
+		// If target arg is an integer (item id), select just the one record	
+		} else if(typeof target == 'number') {
+			// Get the row to update by ID reference
+			row = this.findOne({ id: target });			
+
+			for(prop in obj) {
+				// If prop doesn't exist, create it (prop as string in MongoDB fashion)
+				// @TODO Create a way to remove a property if needed on update
+				if(row[prop] === undefined) {
+					row['\'' + prop + '\''] = obj[prop];
+				} else {
+					row[prop] = obj[prop];
+				}
+			}
+			
+		} else {
+			// Throw a warning if the developer is doing something stupid
+			Ti.API.warn('Invalid arguement: Update only receives an object or an integer');
 		}
 		
 		Ti.App.Properties.setString(this.globalStore, JSON.stringify(this.storage));
 		
-		Ti.API.info('TiStorage - Updated Record: ' + row.id);
+		Ti.API.info('TiStorage - Updated Record');
 		
 		return this;
 	};
@@ -218,7 +249,7 @@ TiStorage.core = TiStorage.prototype = function() {
 		} else {
 			// Cache the record array
 			var record = [];
-			
+
 			// Loop through all collection records (the big mess begins)
 			for(var i = 0; i < collection.length; i++) 
 			{
@@ -255,7 +286,7 @@ TiStorage.core = TiStorage.prototype = function() {
 			
 			// Return of array of matching records
 			if(qty === undefined) {
-				Ti.API.info('TiStorage - Records Selected: ' + record.id);
+				Ti.API.info('TiStorage - Records Selected: ' + record);
 				return record;
 			}
 		}
