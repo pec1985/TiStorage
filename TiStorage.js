@@ -1,19 +1,35 @@
 /**
+ * TiStorage
+ *
+ * @author      Rick Blalock
+ * @company		Appcelerator
+ * @version		0.1 - 'Zergling'
+ * @license		Apache License 2.0 (see license.txt)
+ *
  * A lightweight document storage library.
  * Use this library to quickly build data sets inside the
  * Titanium Properties API.  This is perfect if you don't need to
  * use a SQL database but need to store data.
  *
- * NOTE: THIS IS A DRAFT VERSION
- *
  * Loosly inspired by: 
  * Customer tickets, Lawnchair, MongoDB, and 
  * http://developer.appcelerator.com/blog/2010/06/how-to-persist-complex-javascript-objects.html
- *
- * @author      Rick Blalock
- * @company		Appcelerator
- *
- *
+
+	NOTES
+	There is a lot of functionality that needs to be implemented.  Feel free to contribute!
+	Some things that need to be implemented:
+	- Remove all records according to criteria
+	- Error reporting and better console logging
+	- Option to store data in the filesystem?
+	- Option to store entire object in one SQL table?
+	- Remove a property from a specific row (currently gets set to 'null')
+	- Better find() filtering.  i.e. .find({ 'location': 'Florida'}, { 'last_name': 'Blalock'}
+		means: Find all records of "Blalock" where location == Florida.
+	- Limit method to only get a certain amount of rows
+	- sort() method to sort asc, desc, etc.
+	- skip() method (used with limit) to skip records to start at a specific index
+
+	
  	SAMPLE USAGE
 	
 	Select a 'database'.  If one is not present in the PropertiesDB, it will be created
@@ -53,9 +69,26 @@
 	});
 
 
+	Updates all records that match the object criteria
+	-------------------------------------------------------------------------------
+	users.update({ 'last_name': 'Blalock' }, { 
+		'location': 'Florida'
+	});
+
+
 	Removes record
 	-------------------------------------------------------------------------------
 	users.remove(getUser.id);
+	
+	
+	Check if an object exists
+	-------------------------------------------------------------------------------	
+	users.exist({ 'last_name': 'Smith' }); // returns bool
+	
+	
+	Remove ALL records in a collection
+	-------------------------------------------------------------------------------	
+	users.clear();
 
  */	
 var TiStorage = function() {
@@ -215,6 +248,9 @@ TiStorage.core = TiStorage.prototype = function() {
 		// Get the row to remove by ID reference
 		var row = this.findOne({ id: itemId });
 
+		// If there's nothing to remove return null
+		if( row == null ){ return null; }
+
 		// Splice out the array index of the row
 		collection.splice(collection.indexOf(row), 1);
 
@@ -225,6 +261,64 @@ TiStorage.core = TiStorage.prototype = function() {
 
 		return this;
 	};
+     
+    /* 
+	 * Removes ALL records in a collection 
+	 *
+	 * @author wibblz
+	 */
+    this.clear = function(){
+        var objects = this.find();				// Assign all records in a collection
+        var objects_length = objects.length;	// Get the record count
+        var ids = [];							// Start the id array
+
+		// Loop through each row and push the row ID in to the ID array
+        for(var i = 0; i < objects_length; i++) { 
+			ids.push( objects[i].id ); 
+		}
+		// Loop through ID / index and remove them
+        for(var k = 0; k < objects_length; k++) { 
+			this.remove(ids[k]); 
+		}
+    };
+
+	/**
+	 * Check to see if a record exists
+	 *
+	 * @author wibblz
+	 * @param (object) obj The object to check
+	 */	
+    this.exists = function(obj){
+        return ( typeof(this.find(obj, 'true')) === 'object' );
+    };
+	
+	/**
+	 * Helper filter for find() to return a record set where only the following are true
+	 *
+	 * @author wibblz
+	 * @param (object) obj The object to filter by
+	 */	
+	this.findSpecific = function(obj, collection, qty){
+		// Double check that the found rows have ALL the matching properties requested by obj
+		var records = [];
+		var nonRequiredProperties = ['keys', 'merge'];
+
+		var requiredPropertiesCount = 0;
+		for(prop in obj){ if( nonRequiredProperties.indexOf(prop) == -1 ){ requiredPropertiesCount++; } }
+		for(var i = 0; i < collection.length; i++) 
+		{
+			var foundPropertiesCount = 0;
+			for(prop in obj)
+			{
+				if( obj.hasOwnProperty(prop) && collection[i][prop] === obj[prop] ){ foundPropertiesCount++;  }
+			}
+			if( foundPropertiesCount == requiredPropertiesCount ){ 
+				if( records.indexOf(collection[i]) == -1 ){ records.push(collection[i]); }
+			}
+		}
+		
+		return records;
+	};	
 	
 	/**
 	 * Wrapper method to narrow search to only one record
@@ -274,8 +368,11 @@ TiStorage.core = TiStorage.prototype = function() {
 									} else {
 										Ti.API.info('TiStorage - Record Selected: ' + collection[i].id);
 										
-										// Only return the first matching record
-										return collection[i];
+										// Only return the first, specific matching record
+										return this.findSpecific(obj, [collection[i]]);
+										
+										// @TODO - implement a way to return ANY, non-specific matching records
+										// return collection[i];
 									}
 								}	
 							}
@@ -287,7 +384,10 @@ TiStorage.core = TiStorage.prototype = function() {
 			// Return of array of matching records
 			if(qty === undefined) {
 				Ti.API.info('TiStorage - Records Selected: ' + record);
-				return record;
+				return this.findSpecific(obj, record);
+				
+				// @TODO - implement a way to return ANY, non-specific matching records
+				// return record;
 			}
 		}
 		
