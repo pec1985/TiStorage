@@ -364,15 +364,15 @@ TiStorage.core = TiStorage.prototype = function() {
 									// If qty is not specified, get all matching records
 									if(qty === undefined) 
 									{
-										record.push(collection[i]);
-									} else {
-										Ti.API.info('TiStorage - Record Selected: ' + collection[i].id);
-										
 										// Only return the first, specific matching record
 										return this.findSpecific(obj, [collection[i]]);
 										
 										// @TODO - implement a way to return ANY, non-specific matching records
-										// return collection[i];
+										// record.push(collection[i]);
+									} else {
+										Ti.API.info('TiStorage - Record Selected: ' + collection[i].id);
+										
+										return collection[i];
 									}
 								}	
 							}
