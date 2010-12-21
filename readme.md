@@ -16,6 +16,9 @@ Examples:
 
     // Select / create the 'database'
     var db = conn.use('appc');
+    
+   // Select / create a 'collection' 
+   var users = db.collection('users');
         
     /*
     	Querying examples
@@ -47,7 +50,6 @@ Examples:
     });
     
     // Another example that will update all criteria that is true
-    // @NOTE: NOT IMPLEMENTED YET
     users.update({ 'last_name': 'Blalock' }, { 
     	'location': 'Florida'
     });
@@ -58,13 +60,14 @@ Examples:
     // Remove a record who's id is 4 (note that this is not by index but by the unique ID of the object)
     users.remove(4);
     
-    // Another example that will remove all records where the criteria is true
-    // @NOTE: NOT IMPLEMENTED YET
-    users.remove({ 'last_name': 'Blalock' });
-    
+ 	// Check if an object exists in a collection
+ 	users.exist({ 'last_name': 'Smith' }); // returns bool
+
+ 	// Remove ALL records in a collection
+ 	users.clear();    
     
     // The properties library will create one Titanium Property and store everything inside of that.  
-    // Below is an example structure.
+    // Below is an example structure that is placed in a Ti Property.
     TiStorage = {
     	'appc': {
     		'users': [
