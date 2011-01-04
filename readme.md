@@ -19,6 +19,9 @@ Examples:
     
    // Select / create a 'collection' 
    var users = db.collection('users');
+   
+	// Another option is to select the database and collection at the same time:
+	var users = conn.use('appc').collection('users);   
         
     /*
     	Querying examples
